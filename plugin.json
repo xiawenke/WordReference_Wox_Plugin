@@ -1,0 +1,12 @@
+{
+    "ID":"2f4e384e-76ce-45c1-aea2-b16f5e5c328f",
+    "ActionKeyword":"wr",
+    "Name":"Word Reference Plugin",
+    "Description":"Quicker Method to search words on WordReference.",
+    "Author":"Lazy_Lazy_Man",
+    "Version":"0.1.0",
+    "Language":"python",
+    "Website":"https://github.com/jianbing",
+    "IcoPath":"Images\\ico.ico",
+    "ExecuteFileName":"main.py"
+}
