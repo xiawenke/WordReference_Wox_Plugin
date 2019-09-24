@@ -1,0 +1,2 @@
+DefaultDictionary: enzh
+APIUrl: http://wr.miku-miku.online/

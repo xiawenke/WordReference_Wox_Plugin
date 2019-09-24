@@ -1,10 +1,4 @@
 <?php
-include_once('simple_html_dom.php');
-
-// Avoid Exceptions.
-if(!isset($_GET['url'])){
-    exit();
-}
 
 /**
  * Curl Obtainnin WebData
@@ -66,17 +60,165 @@ function link_urldecode($url) {
     return $uri;
 }
 
-// Load WebData
-$raw = get_url(link_urldecode($_GET['url']));
+/** ====================== */
+/** RESPONCE TO EXCEPTIONS */
+/** ====================== */
 
-// Matching Data
+$dictList = array(
+    /** Spanish */
+    'enes',     // English-Spanish
+    'esen',     // Spanish-English
+    'esfr',     // Spanish-French
+    'espt',     // Spanish-Portuguese
+    'esit',     // Spanish-Italian
+    'esde',     // Spanish-German
+    'eses',     // Spanish: definition
+    'essin',    // Spanish: synonyms
+    'esconj',   // Spanish: conjugations
+
+    /** French */
+    'enfr',      // English-French
+    'fren',      // French-English
+    'fres',      // French-Spanish
+    'frconj',    // French: conjugations
+
+    /** Italian */
+    'enit',      // English-Italian
+    'iten',      // Italian-English
+    'ites',      // Italian-Spanish
+    'itit',      // Italian definition
+    'itconj',    // Italian: conjugations
+
+    /** Catalan */
+    'caca',      // Català: definició
+
+    /** German */
+    'ende',      // English-German
+    'deen',      // German-English
+    'dees',      // German-Spanish
+
+    /** Dutch */
+    'ennl',       // English-Dutch
+    'nlen',       // Dutch-English
+
+    /** Swedish */
+    'ensv',       // English-Swedish
+    'sven',       //Swedish-English
+
+    /** Russian */
+    'enru',       // English-Russian
+    'ruen',       // Russian-English
+
+    /** Chinese */
+    'enzh',       // English-Chinese
+    'zhen',       // Chinese-English
+
+    /** Portuguese */
+    'enpt',       // English-Portuguese
+    'pten',       // Portuguese-English
+    'ptes',       // Portuguese-Spanish
+
+    /** Polish */
+    'enpl',       // English-Polish
+    'plen',       // Polish-English
+
+    /** Romanian */
+    'enro',       // English-Romanian
+    'roen',       // Romanian-English
+
+    /** Czech */
+    'encz',       // English-Czech
+    'czen',       // Czech-English
+
+    /** Greek */
+    'engr',       // English-Greek
+    'gren',       // Greek-English
+
+    /** Turkish */
+    'entr',       // English-Turkish
+    'tren',       // Turkish-English
+
+    /** Japanese */
+    'enja',       // English-Japanese
+    'jaen',       // Japanese-English
+
+    /** Korean */
+    'enko',       // English-Korean
+    'koen',       // Korean-English
+
+    /** Arabic */
+    'enar',       // English-Arabic
+    'aren',       // Arabic-English
+
+    /** English monolingual */
+    'enen',       // English definition 
+    'enthe',      // English synonyms
+    'enusg',      // English usage
+    'encol',      // English collocations
+    'enconj'      // English: conjugations
+
+);
+
+// Compatible with previous version of Python script.
+if(isset($_GET['url'])){
+    $_GET['word'] = 'default';
+}
+
+// Response to language list quary
+if(isset($_GET['getLanguageList'])){
+    if(!file_exists('LanguageList.wr')){
+        file_put_contents(
+            'LanguageList.wr', 
+            file_get_contents('https://raw.githubusercontent.com/xiawenke/WordReference_Wox_Plugin/master/LanguageList.wr')
+        );
+    }
+    echo file_get_contents('LanguageList.wr');
+    exit();
+}
+
+if(!isset($_GET['word'])){
+    exit();
+}
+
+if(!isset($_GET['dict'])){
+    $_GET['dict'] = 'enzh';         // Default dictionary: enzh (English to Chinese).
+}
+
+if(!in_array($_GET['dict'], $dictList)){
+    $_GET['dict'] = 'enzh';
+}
+
+/** DETECT LANGUAGE BY WORDREFRENCE */
+$reqURL  = "https://www.wordreference.com/redirect/translation.aspx?w=?=WORD?=&dict=?=DICT?=";
+$reqURL  = str_replace('?=WORD?=', $_GET['word'], $reqURL);
+$reqURL  = str_replace('?=DICT?=', $_GET['dict'], $reqURL);
+$headers = get_headers($reqURL, TRUE);
+// Process Returned URL
+if(!isset($headers['Location'])){
+    print('array|ERROR%%Unexpected error happened on PHP API.');
+    exit();
+}
+$wordUrl = 'https:'.$headers['Location'];
+
+
+/** LOAD WEBDATA */
+if(isset($_GET['url'])){
+    // Compatible with previous version of Python script.
+    $wordUrl = $_GET['url'];
+}
+
+$raw = get_url(link_urldecode($wordUrl));
+
+/** FETCH & RETURN DATA */
 $returnData = array();
 preg_match_all('/<tr.*?>(.*?)<\/tr>/ism', $raw, $match);
 $match = $match[1];
+$result = False;
 
 foreach ($match as $key => $value) {
     if (strpos($value,'FrWrd')) {
     	if (strpos($value,'<strong>')) {
+            $result = True;
             $processedDef = $value;
             $processedDef = str_replace('<br>', ' ', $processedDef);
                             preg_match_all('/<strong.*?>(.*?)<\/strong>/ism', $processedDef, $processedWord);
@@ -84,9 +226,17 @@ foreach ($match as $key => $value) {
     		$processedDef = preg_replace("/<strong.*?>(.*?)<\/strong>/ism", "", $processedDef);
     		$processedDef = preg_replace("/<[^>]*>/", "", $processedDef);
             $processedDef = str_replace('&nbsp;', ' ', $processedDef);
-        	$returnData = $returnData.'|'.$processedWord[1][0].'%%'.$processedDef;
+        	$returnData = $returnData.'|'.$processedWord[1][0].'%%'.$processedDef.'%%'.$wordUrl;
     	}
     }
 }
+
+/** Response to no result */
+if($result == False){
+    $returnData = $returnData.'|Ops... Definition not found!%%Click here to seach on WordReference on your own.%%'.$wordUrl;
+}
+
+/** ADD COPYRIGHT FOOTER */
+$returnData = $returnData.'| ====== © Powered by WordReference ====== %%            ⚑ Results from wordreference.com ⚑                                                                                %%https://wordreference.com';
 
 echo $returnData;
