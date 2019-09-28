@@ -89,14 +89,51 @@ class Main(WoxEx):  # 继承WoxEx
         thisWord       = 'Unset'
         thisDefinition = 'Unavailable'
         gotoURL        = 'http://www.wordreference.com/'
+        GitHubLink     = 'https://github.com/xiawenke/WordReference_Wox_Plugin'
         apiUrl         = APIUrl + '?url=&URL&'
         apiUrlV2ByWord = APIUrl + '/?word=&WORD&'
         apiUrlV2ByDict = APIUrl + '/?word=&WORD&&dict=&DICT&'
         results        = list()
 
         ### Split Keywords ###
-        seperatedKeys = keyword.split(' ')
+        seperatedKeys = keyword.split()
         thisDefinition = 'Go on search with keywords.'
+
+        ### Show User Manual ###
+        if len(seperatedKeys) == 0 : 
+            supportedCommands = list()
+            supportedCommands.append({
+                'Name'    : 'Simple Search (Using Default Dictionary)',
+                'Command' : 'Command: wr <Word> | Example: wr hello'
+            })
+            supportedCommands.append({
+                'Name'    : 'Simple Search (Using Specific Dictionary)',
+                'Command' : 'Command: wr <Dictionary> <Word> | Example: wr enja hello'
+            })
+            supportedCommands.append({
+                'Name'    : 'Multi-Compare Seach (Using Default Dictionary)',
+                'Command' : 'Command: wr [<Word1>, <Word2>, <...>] | Example: wr [program, code, software]'
+            })
+            supportedCommands.append({
+                'Name'    : 'Multi-Compare Seach (Using Spechfic Dictionary)',
+                'Command' : 'Command: wr [<Word1>(<Dict1>), <Word2>(<Dict2>), <...>(...)] | Example: wr [hello(enja), hello(enzh), world(enpt)]'
+            })
+            supportedCommands.append({
+                'Name'    : 'Show All Supported Dictionaries',
+                'Command' : 'Command: wr show dictionaries'
+            })
+
+            for thisCommand in supportedCommands:
+                results.append({
+                    "Title": thisCommand['Name'],
+                    "SubTitle": thisCommand['Command'],
+                    "IcoPath": "Images/ico.ico",
+                    "JsonRPCAction": {
+                        "method": "GoOn",
+                        "parameters": [GitHubLink],
+                        "dontHideAfterAction": False
+                    }
+                })
 
         if len(seperatedKeys) > 0 :
             
@@ -121,6 +158,78 @@ class Main(WoxEx):  # 继承WoxEx
                         # Maybe A NetWork Error.
                         apiReturn = '0'
 
+            ### Word Comparing Search ###
+            elif ('[' in specifiedLang) or ('【' in specifiedLang):
+
+                multiList = keyword
+                multiList = multiList.replace('，', ',').replace('【', '[').replace('】', ']').replace('（', '(').replace('）', ')')   # Chinese symbol support. 
+
+                thisTitle = 'Muti-Searching: Syntax Error'
+                thisSub   = 'Failed to interpret the command: ' + multiList
+                thisP     = 'https://wordreference.com'
+
+                try:
+                    words = multiList.replace('[', '').replace(']', '').replace(' ','')
+                    words = words.split(',')
+
+                    ## Search words ##
+                    for thisWord in words:
+
+                        ## Specific Dictionary ##
+                        try:
+                            thisDictionary = thisWord[thisWord.find('(')+1: thisWord.find(')')]
+                            thisWord       = thisWord.replace('(', '').replace(')', '').replace(thisDictionary, '')
+                        except Exception as identifier:
+                            thisDictionary = DefaultDictionary
+
+                        ## Establish Connection ##                        
+                        try:
+                            thisApiReturn = requests.get(apiUrlV2ByDict.replace('&WORD&', thisWord).replace('&DICT&', thisDictionary))
+                            thisApiReturn = thisApiReturn.text
+                        except Exception as identifier:
+                            thisTitle = 'Connection Error...'
+                            thisSub   = 'Check your internet connections.'
+                        
+                        thisApiReturn = thisApiReturn.split('|')
+                        
+                        ## Fetch Result ##
+                        try:
+                            thisDef  = thisApiReturn[1].split('%' + '%')
+                            thisLink = thisDef[2]
+                            thisDef  = thisDef[1]
+                        except Exception as identifier:
+                            thisDef  = 'No Definition.'
+                            thisLink = 'https://wordreference.com'
+                        
+                        results.append({
+                            "Title": thisWord,
+                            "SubTitle": thisDef,
+                            "IcoPath": "Images/ico.ico",
+                            "JsonRPCAction": {
+                                "method": "GoOn",
+                                "parameters": [thisLink],
+                                "dontHideAfterAction": False
+                            }
+                        })
+                        
+                    
+                    thisTitle = 'del'
+
+                except Exception as identifier:
+                    pass
+                
+                if thisTitle != 'del' :
+                    results.append({
+                        "Title": thisTitle,
+                        "SubTitle": thisSub,
+                        "IcoPath": "Images/ico.ico",
+                        "JsonRPCAction": {
+                            "method": "GoOn",
+                            "parameters": [thisP],
+                            "dontHideAfterAction": False
+                        }
+                    })
+            
             ### Wrong Dictionary Name ###
             elif len(seperatedKeys) > 1:
                 
