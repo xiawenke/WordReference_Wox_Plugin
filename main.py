@@ -177,8 +177,11 @@ class Main(WoxEx):  # 继承WoxEx
 
                         ## Specific Dictionary ##
                         try:
-                            thisDictionary = thisWord[thisWord.find('(')+1: thisWord.find(')')]
-                            thisWord       = thisWord.replace('(', '').replace(')', '').replace(thisDictionary, '')
+                            if ('(' in thisWord) and (')' in thisWord):
+                                thisDictionary = thisWord[thisWord.find('(')+1: thisWord.find(')')]
+                                thisWord       = thisWord.replace('(', '').replace(')', '').replace(thisDictionary, '')
+                            else:
+                                raise Exception('NO_CHOOSENED_DICT')
                         except Exception as identifier:
                             thisDictionary = DefaultDictionary
 
