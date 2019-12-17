@@ -22,6 +22,9 @@ Quicker Method to search words on WordReference. Modify the 'config.txt' if you 
 
 <br>
 <hr>
+<h1>Version 1.5.5 -> 1.5.6</h1>
+ - [FIXED] Collapse while Extension Modules not found. <br>
+<hr>
 <h1>Version 1.0.2 -> 1.5.5</h1>
  - [NEW FEATURE] In-plugin user manual.<br>
  - [NEW FEATURE] Multi-Compare Search supported.<br>
