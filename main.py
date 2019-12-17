@@ -3,22 +3,101 @@
 from util import WoxEx, WoxAPI, load_module, Log
 import urllib
 
-
-#######################
-#   LOADING MODULES   #
-#######################
-
-with load_module():
-    import pyperclip
-    import requests
-    import webbrowser
-    from os import path
-
-
-
 class Main(WoxEx):  # 继承WoxEx
 
     def query(self, keyword):
+
+        results = list()
+
+        #######################
+        #   LOADING MODULES   #
+        #######################
+
+        with load_module():
+
+            issetPyperclip  = True
+            issetRequests   = True
+            issetWebbrowser = True
+            issetOs         = True
+            
+            try:
+                import pyperclip
+            except Exception as e:
+                issetPyperclip = False
+
+            try:
+                import requests
+            except Exception as e:
+                issetRequests = False
+
+            try:
+                import webbrowser
+            except Exception as e:
+                issetWebbrowser = False
+
+            try:
+                from os import path
+            except Exception as e:
+                issetOs = False
+            
+            requirements = False
+
+            if (issetRequests == False):
+                if(requirements == False):
+                    requirements = ''
+                else:
+                    requirements = requirements + ', '
+                requirements = requirements + 'requests'
+
+            if (issetOs == False):
+                if(requirements == False):
+                    requirements = ''
+                else:
+                    requirements = requirements + ', '
+                requirements = requirements + 'os'
+                
+            suggestions = False
+
+            if (issetPyperclip == False):
+                if(suggestions == False):
+                    suggestions = ''
+                else:
+                    suggestions = suggestions + ', '
+                suggestions = suggestions + 'pyperclip'
+                
+            if (issetWebbrowser == False):
+                if(suggestions == False):
+                    suggestions = ''
+                else:
+                    suggestions = suggestions + ', '
+                suggestions = suggestions + 'webbrowser'
+
+            
+            if requirements != False:
+                results.append({
+                    "Title": 'Following modules are needed to install:',
+                    "SubTitle": 'Modules: ' + requirements + '. (ONLY MODULES ARE INSTALLED, THE PLUGIN CAN PERFORMING SUCCESSFUALLY. )',
+                    "IcoPath": "Images/ico.ico",
+                    "JsonRPCAction": {
+                        "method": "GoOn",
+                        "parameters": ['https://github.com/xiawenke/WordReference_Wox_Plugin', issetWebbrowser, issetPyperclip],
+                        "dontHideAfterAction": False
+                    }
+                })
+                return results
+                
+            if (suggestions != False) and (len(keyword.split()) == 0):
+                results.append({
+                    "Title": '--------- Recommended Plugin Installation ---------',
+                    "SubTitle": 'Modules: ' + suggestions + '. (Only those modules are installed, the plugin can perform its full features.)',
+                    "IcoPath": "Images/ico.ico",
+                    "JsonRPCAction": {
+                        "method": "GoOn",
+                        "parameters": ['https://github.com/xiawenke/WordReference_Wox_Plugin', issetWebbrowser, issetPyperclip],
+                        "dontHideAfterAction": False
+                    }
+                })
+                
 
         ################################
         #     PROCESS CONFIG FILES     #
@@ -93,7 +172,6 @@ class Main(WoxEx):  # 继承WoxEx
         apiUrl         = APIUrl + '?url=&URL&'
         apiUrlV2ByWord = APIUrl + '/?word=&WORD&'
         apiUrlV2ByDict = APIUrl + '/?word=&WORD&&dict=&DICT&'
-        results        = list()
 
         ### Split Keywords ###
         seperatedKeys = keyword.split()
@@ -130,7 +208,7 @@ class Main(WoxEx):  # 继承WoxEx
                     "IcoPath": "Images/ico.ico",
                     "JsonRPCAction": {
                         "method": "GoOn",
-                        "parameters": [GitHubLink],
+                        "parameters": [GitHubLink, issetWebbrowser, issetPyperclip],
                         "dontHideAfterAction": False
                     }
                 })
@@ -210,7 +288,7 @@ class Main(WoxEx):  # 继承WoxEx
                             "IcoPath": "Images/ico.ico",
                             "JsonRPCAction": {
                                 "method": "GoOn",
-                                "parameters": [thisLink],
+                                "parameters": [thisLink, issetWebbrowser, issetPyperclip],
                                 "dontHideAfterAction": False
                             }
                         })
@@ -228,7 +306,7 @@ class Main(WoxEx):  # 继承WoxEx
                         "IcoPath": "Images/ico.ico",
                         "JsonRPCAction": {
                             "method": "GoOn",
-                            "parameters": [thisP],
+                            "parameters": [thisP, issetWebbrowser, issetPyperclip],
                             "dontHideAfterAction": False
                         }
                     })
@@ -247,7 +325,7 @@ class Main(WoxEx):  # 继承WoxEx
                     "IcoPath": "Images/ico.ico",
                     "JsonRPCAction": {
                         "method": "GoOn",
-                        "parameters": [APIUrl+'?getLanguageList=True'],
+                        "parameters": [APIUrl+'?getLanguageList=True', issetWebbrowser, issetPyperclip],
                         "dontHideAfterAction": False
                     }
                 })
@@ -271,7 +349,7 @@ class Main(WoxEx):  # 继承WoxEx
                             "IcoPath": "Images/ico.ico",
                             "JsonRPCAction": {
                                 "method": "GoOn",
-                                "parameters": [APIUrl+'?getLanguageList=True'],
+                                "parameters": [APIUrl+'?getLanguageList=True', issetWebbrowser, issetPyperclip],
                                 "dontHideAfterAction": False
                             }
                         })
@@ -312,7 +390,7 @@ class Main(WoxEx):  # 继承WoxEx
                                 "IcoPath": "Images/ico.ico",
                                 "JsonRPCAction": {
                                     "method": "GoOn",
-                                    "parameters": [gotoURL],
+                                    "parameters": [gotoURL, issetWebbrowser, issetPyperclip],
                                     "dontHideAfterAction": False
                                 }
                             })
@@ -327,7 +405,7 @@ class Main(WoxEx):  # 继承WoxEx
                         "IcoPath": "Images/ico.ico",
                         "JsonRPCAction": {
                             "method": "GoOn",
-                            "parameters": [gotoURL],
+                            "parameters": [gotoURL, issetWebbrowser, issetPyperclip],
                             "dontHideAfterAction": False
                         }
                     })
@@ -341,7 +419,7 @@ class Main(WoxEx):  # 继承WoxEx
                         "IcoPath": "Images/ico.ico",
                         "JsonRPCAction": {
                             "method": "GoOn",
-                            "parameters": [gotoURL],
+                            "parameters": [gotoURL, issetWebbrowser, issetPyperclip],
                             "dontHideAfterAction": False
                         }
                     })
@@ -362,7 +440,7 @@ class Main(WoxEx):  # 继承WoxEx
                 "IcoPath": "Images/ico.ico",
                 "JsonRPCAction": {
                     "method": "GoOn",
-                    "parameters": [gotoURL],
+                    "parameters": [gotoURL, issetWebbrowser, issetPyperclip],
                     "dontHideAfterAction": False
                    }
             })
@@ -370,8 +448,30 @@ class Main(WoxEx):  # 继承WoxEx
         return results
 
     def GoOn(self, keyword):
-        webbrowser.open(keyword)
-        pyperclip.copy(keyword)
+        
+        #######################
+        #   LOADING MODULES   #
+        #######################
+
+        with load_module():
+
+            issetPyperclip  = True
+            issetWebbrowser = True
+            
+            try:
+                import pyperclip
+            except Exception as e:
+                issetPyperclip = False
+
+            try:
+                import webbrowser
+            except Exception as e:
+                issetWebbrowser = False
+            
+        if(issetWebbrowser):
+            webbrowser.open(keyword)
+        if(issetPyperclip): 
+            pyperclip.copy(keyword)
 
 
 if __name__ == "__main__":
